@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 export interface Location {
   id: string;
   label: string;
@@ -28,7 +30,7 @@ export interface UserProfile {
   uid: string;
   email: string;
   displayName: string;
-  createdAt: unknown;
+  createdAt: Timestamp | null;
   profileComplete: boolean;
   locations: Location[];
   household: Household;

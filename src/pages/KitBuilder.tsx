@@ -173,7 +173,8 @@ export default function KitBuilder() {
       doc.text('72-Hour Emergency Kit Checklist', pageW / 2, y, { align: 'center' });
       y += 6;
       doc.setFontSize(10);
-      doc.text(`Generated: ${new Date().toLocaleDateString()} | ${adults + children + infants} people, ${pets.length} pet types`, pageW / 2, y, { align: 'center' });
+      const householdInfo = `Generated: ${new Date().toLocaleDateString()} | ${adults + children + infants} people, ${pets.length} pet types`;
+      doc.text(householdInfo, pageW / 2, y, { align: 'center' });
       y += 6;
       doc.text(`Completion: ${progress}% (${acquired}/${items.length} items)`, pageW / 2, y, { align: 'center' });
       y += 12;

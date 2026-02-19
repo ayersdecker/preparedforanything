@@ -8,7 +8,7 @@ import {
   updateProfile,
   type User,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, type Timestamp } from 'firebase/firestore';
 import { auth, db, googleProvider, isFirebaseConfigured } from '../lib/firebase';
 import type { UserProfile, Household } from '../types';
 
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       uid: user.uid,
       email,
       displayName,
-      createdAt: serverTimestamp(),
+      createdAt: serverTimestamp() as unknown as Timestamp,
       profileComplete: false,
       locations: [],
       household: DEFAULT_HOUSEHOLD,
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         uid: user.uid,
         email: user.email ?? '',
         displayName: user.displayName ?? 'User',
-        createdAt: serverTimestamp(),
+        createdAt: serverTimestamp() as unknown as Timestamp,
         profileComplete: false,
         locations: [],
         household: DEFAULT_HOUSEHOLD,
