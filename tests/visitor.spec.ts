@@ -23,6 +23,10 @@ test('visitor can select, change, remember, and forget a state without sign-in',
   await page.getByLabel('Choose a state').selectOption('CA');
   await expect(page.getByRole('heading', { name: 'California at a glance' })).toBeVisible();
   await expect(page.locator('.hazard-card')).toHaveCount(6);
+  await expect(page.locator('.hazard-card > p').first()).toHaveCSS('font-size', '16px');
+  await expect(page.locator('.privacy-note')).toHaveCSS('font-size', '14px');
+  await expect(page.getByLabel('Or search for a US city')).toHaveCSS('font-size', '16px');
+  await expect(page.getByLabel('Choose a state')).toHaveCSS('font-size', '16px');
   await page.locator('.hazard-tips summary').first().click();
   await expect(page.getByText('Know your evacuation routes before fire season.')).toBeVisible();
   await expect(page.getByText('Flood Warning', { exact: true })).toBeVisible();
