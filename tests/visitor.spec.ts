@@ -100,6 +100,8 @@ test('alert failure is not displayed as all-clear, and refresh recovers', async 
 test('map renders regional markers, filters hazards, and displays official polygons', async ({ page }, testInfo) => {
   await page.goto('./?tab=map');
   await expect(page.locator('.leaflet-container')).toBeVisible();
+  await expect(page.locator('.leaflet-tile').first()).toHaveAttribute('src', /https:\/\/server\.arcgisonline\.com\/ArcGIS\/rest\/services\/World_Topo_Map\/MapServer\/tile\//);
+  await expect(page.locator('.leaflet-control-attribution').getByRole('link', { name: 'Esri' })).toBeVisible();
   await expect(page.locator('.leaflet-overlay-pane path')).toHaveCount(51);
   await page.getByLabel('Hazard', { exact: true }).selectOption('Earthquake');
   const filtered = await page.locator('.leaflet-overlay-pane path').count();

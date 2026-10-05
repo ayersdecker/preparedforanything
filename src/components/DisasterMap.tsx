@@ -33,8 +33,8 @@ export default function DisasterMap({ location, hazard, layer, alerts, onSelect 
   return (
     <div className="disaster-map" aria-label="US disaster preparedness map">
       <MapContainer center={[39, -98]} zoom={4} minZoom={2} maxZoom={15} scrollWheelZoom={false}>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          attribution='Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Sources: Esri, HERE, Garmin, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), OpenStreetMap contributors, GIS User Community'
           eventHandlers={{ tileerror: () => setTileError(true) }} />
         <MapPosition location={location} />
         {layer === 'hazards' && STATES.map(([code, name, latitude, longitude]) => {
