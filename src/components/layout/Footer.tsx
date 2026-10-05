@@ -11,9 +11,9 @@ export default function Footer() {
             <span className="font-bold text-text-primary">Prepared For Anything</span>
           </div>
           <nav className="flex flex-wrap gap-4 text-sm text-text-secondary">
-            <Link to="/" className="hover:text-text-primary transition-colors">Home</Link>
-            <Link to="/dashboard" className="hover:text-text-primary transition-colors">Dashboard</Link>
-            <Link to="/kit-builder" className="hover:text-text-primary transition-colors">Kit Builder</Link>
+            <Link to="/?tab=area" className="hover:text-text-primary transition-colors">Explore Your Area</Link>
+            <Link to="/?tab=map" className="hover:text-text-primary transition-colors">Disaster Map</Link>
+            <Link to="/signup" className="hover:text-text-primary transition-colors">Create account</Link>
           </nav>
         </div>
         <div className="mt-6 pt-6 border-t border-surface-2 space-y-2">

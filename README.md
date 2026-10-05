@@ -4,6 +4,9 @@ A personalized disaster preparedness platform built with React + TypeScript + Fi
 
 ## Features
 
+- **Public area explorer**: Browse state hazards, typical seasons, and preparation tips without signing in.
+- **Disaster map**: Filter regional hazards across all US states and DC, or view official NWS alert polygons.
+- **Optional location**: Search US cities, select a state, or explicitly grant browser location access.
 - 📍 **Location-Based Risk Assessment** — Know the disasters that threaten your specific area
 - 📦 **Custom Emergency Kit Builder** — 72-hour kit tailored to your household size and needs
 - 🗺️ **Evacuation Planning** — Plan routes and meeting points before disaster strikes
@@ -19,6 +22,43 @@ A personalized disaster preparedness platform built with React + TypeScript + Fi
 - **PDF**: jsPDF
 - **Icons**: Lucide React
 - **Routing**: React Router DOM v7
+- **Map**: Leaflet + React Leaflet with OpenStreetMap tiles
+- **Browser tests**: Playwright (desktop and mobile Chromium)
+
+## Visitor Experience
+
+The home page is a public preparedness explorer. `?tab=area` opens the area overview;
+`?tab=map` opens the disaster map. Account creation is a separate next step for
+personal checklists and household planning; this change does not extend authentication.
+
+- Coverage is currently the 50 US states and DC. City selection changes the map center,
+  but preparedness guidance remains state-level, not an address-specific assessment.
+- Regional priorities and typical peak months come from the existing educational state
+  guide. They are qualitative, not official risk scores, forecasts, or incident reports.
+- City searches use Open-Meteo geocoding. Opt-in browser coordinates are sent to
+  BigDataCloud for reverse geocoding. Only the state code is saved in local storage;
+  the location's clear button removes it. Precise coordinates are not persisted by this app.
+- Active weather alerts come directly from `api.weather.gov`, refresh every five minutes
+  while a state is selected, and can also be refreshed manually. Alerts are statewide;
+  not all apply to the chosen city. Only source-provided geometry is drawn on the map.
+  County-based alerts without polygons remain in the alert list. NWS is not an all-disaster
+  reporting feed and this app does not accept community incident reports.
+- API failures are shown as unavailable, never as an all-clear. State guidance still works
+  without geocoding or alert services. Map tiles, city search, and alerts require internet.
+- Browser geolocation requires HTTPS or localhost and explicit visitor permission.
+
+### Browser Checks
+
+```bash
+npx playwright install --with-deps chromium
+npm run test:e2e
+```
+
+The tests start a local Vite server on port 5181 and cover desktop/mobile location
+selection, persistence and removal, geolocation consent/fallback, city lookup,
+alert failures/recovery, and hazard/alert map layers. External API responses are
+controlled in tests; OpenStreetMap tiles are loaded normally. Screenshots and
+failure traces are written to the ignored test-results directory.
 
 ## Getting Started
 
@@ -97,7 +137,7 @@ src/
     firebase.ts       Firebase initialization
     riskData.ts       Disaster risk database for all 50 US states
   pages/
-    Landing.tsx       Marketing landing page
+    Landing.tsx       Public location, hazard, and disaster map explorer
     Login.tsx         Authentication
     Signup.tsx        Registration
     Dashboard.tsx     Main user dashboard

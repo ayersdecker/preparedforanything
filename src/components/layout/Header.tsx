@@ -11,11 +11,16 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const navLinks = [
+  const publicLinks = [
+    { to: '/?tab=area', label: 'Explore Your Area' },
+    { to: '/?tab=map', label: 'Disaster Map' },
+  ];
+  const accountLinks = [
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/risk-assessment', label: 'Risk Assessment' },
     { to: '/kit-builder', label: 'Kit Builder' },
   ];
+  const navLinks = currentUser ? [...publicLinks, ...accountLinks] : publicLinks;
 
   async function handleSignOut() {
     try {
@@ -27,7 +32,9 @@ export default function Header() {
     }
   }
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => path.startsWith('/?')
+    ? location.pathname === '/' && (new URLSearchParams(location.search).get('tab') || 'area') === new URLSearchParams(path.split('?')[1]).get('tab')
+    : location.pathname === path;
 
   return (
     <header className="sticky top-0 z-50 bg-surface border-b border-surface-2">
@@ -42,10 +49,11 @@ export default function Header() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {(currentUser || isDemoMode) && navLinks.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
+                aria-current={isActive(link.to) ? 'page' : undefined}
                 className={`px-3 py-2 rounded-btn text-sm font-medium transition-colors ${
                   isActive(link.to)
                     ? 'text-primary bg-primary/10'
@@ -59,7 +67,7 @@ export default function Header() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            {isDemoMode && (
+            {isDemoMode && location.pathname !== '/' && (
               <span className="hidden sm:block text-xs bg-warning/20 text-warning px-2 py-1 rounded-btn">
                 Demo Mode
               </span>
@@ -96,27 +104,29 @@ export default function Header() {
                   </div>
                 )}
               </div>
-            ) : !isDemoMode ? (
+            ) : (
               <>
                 <Link
                   to="/login"
                   className="hidden sm:block text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
                 >
-                  Login
+                  Sign in
                 </Link>
                 <Link
                   to="/signup"
                   className="bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2 rounded-btn transition-colors"
                 >
-                  Get Started
+                  Create account
                 </Link>
               </>
-            ) : null}
+            )}
 
             {/* Mobile menu button */}
             <button
               className="md:hidden p-2 rounded-btn text-text-secondary hover:text-text-primary hover:bg-surface-2"
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+              aria-expanded={mobileOpen}
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -128,10 +138,11 @@ export default function Header() {
       {mobileOpen && (
         <div className="md:hidden border-t border-surface-2 bg-surface">
           <div className="px-4 py-3 space-y-1">
-            {(currentUser || isDemoMode) && navLinks.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
+                aria-current={isActive(link.to) ? 'page' : undefined}
                 onClick={() => setMobileOpen(false)}
                 className={`block px-3 py-2 rounded-btn text-sm font-medium transition-colors ${
                   isActive(link.to)
@@ -142,21 +153,21 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            {!currentUser && !isDemoMode && (
+            {!currentUser && (
               <>
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
                   className="block px-3 py-2 rounded-btn text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-2"
                 >
-                  Login
+                  Sign in
                 </Link>
                 <Link
                   to="/signup"
                   onClick={() => setMobileOpen(false)}
                   className="block px-3 py-2 rounded-btn text-sm font-medium bg-primary text-white hover:bg-primary-dark"
                 >
-                  Get Started
+                  Create account
                 </Link>
               </>
             )}
