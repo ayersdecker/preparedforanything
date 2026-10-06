@@ -7,8 +7,8 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
-    { to: '/?tab=area', label: 'Explore Your Area' },
     { to: '/?tab=map', label: 'Disaster Map' },
+    { to: '/?tab=area', label: 'Explore Your Area' },
     { to: '/emergency-kit', label: 'Emergency Kit' },
     { to: '/resources', label: 'Local Resources' },
   ];
