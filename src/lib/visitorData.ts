@@ -36,6 +36,9 @@ export interface VisitorLocation {
   longitude: number;
 }
 
+const VISITOR_STATE_COOKIE = 'pfa-visitor-state';
+const VISITOR_STATE_MAX_AGE = 60 * 60 * 24 * 365;
+
 export function stateLocation(code: string): VisitorLocation {
   const state = STATES.find(([abbreviation]) => abbreviation === code);
   if (!state) throw new Error('Choose a supported US state.');
@@ -43,12 +46,21 @@ export function stateLocation(code: string): VisitorLocation {
 }
 
 export function readSavedLocation(): VisitorLocation | null {
-  try {
-    const code = localStorage.getItem('pfa-visitor-state');
-    return code ? stateLocation(code) : null;
-  } catch {
-    return null;
-  }
+  const cookie = document.cookie.split(';').map(value => value.trim())
+    .find(value => value.startsWith(`${VISITOR_STATE_COOKIE}=`));
+  const code = cookie?.slice(VISITOR_STATE_COOKIE.length + 1);
+  return code && STATES.some(([abbreviation]) => abbreviation === code) ? stateLocation(code) : null;
+}
+
+export function saveVisitorState(code: string): void {
+  const location = stateLocation(code);
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${VISITOR_STATE_COOKIE}=${location.state}; Max-Age=${VISITOR_STATE_MAX_AGE}; Path=/; SameSite=Lax${secure}`;
+}
+
+export function clearSavedLocation(): void {
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${VISITOR_STATE_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax${secure}`;
 }
 
 export async function searchLocations(query: string, signal: AbortSignal): Promise<VisitorLocation[]> {

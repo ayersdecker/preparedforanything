@@ -1,36 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Menu, X, LogOut, ChevronDown } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import { Link, useLocation } from 'react-router-dom';
+import { Shield, Menu, X } from 'lucide-react';
 
 export default function Header() {
-  const { currentUser, userProfile, signOut, isDemoMode } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const publicLinks = [
+  const navLinks = [
     { to: '/?tab=area', label: 'Explore Your Area' },
     { to: '/?tab=map', label: 'Disaster Map' },
+    { to: '/emergency-kit', label: 'Emergency Kit' },
+    { to: '/resources', label: 'Local Resources' },
   ];
-  const accountLinks = [
-    { to: '/dashboard', label: 'Dashboard' },
-    { to: '/risk-assessment', label: 'Risk Assessment' },
-    { to: '/kit-builder', label: 'Kit Builder' },
-  ];
-  const navLinks = currentUser ? [...publicLinks, ...accountLinks] : publicLinks;
-
-  async function handleSignOut() {
-    try {
-      await signOut();
-      navigate('/');
-      toast.success('Signed out successfully');
-    } catch {
-      toast.error('Failed to sign out');
-    }
-  }
 
   const isActive = (path: string) => path.startsWith('/?')
     ? location.pathname === '/' && (new URLSearchParams(location.search).get('tab') || 'area') === new URLSearchParams(path.split('?')[1]).get('tab')
@@ -65,62 +46,7 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Right side */}
           <div className="flex items-center gap-3">
-            {isDemoMode && location.pathname !== '/' && (
-              <span className="hidden sm:block text-xs bg-warning/20 text-warning px-2 py-1 rounded-btn">
-                Demo Mode
-              </span>
-            )}
-            {currentUser ? (
-              <div className="relative">
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-btn bg-surface-2 hover:bg-surface border border-surface-2 transition-colors text-sm"
-                >
-                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                    {(userProfile?.displayName ?? currentUser.email ?? 'U')[0].toUpperCase()}
-                  </div>
-                  <span className="hidden sm:block text-text-primary max-w-24 truncate">
-                    {userProfile?.displayName ?? currentUser.email}
-                  </span>
-                  <ChevronDown className="w-4 h-4 text-text-secondary" />
-                </button>
-                {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-surface border border-surface-2 rounded-card shadow-xl z-50">
-                    <div className="px-4 py-3 border-b border-surface-2">
-                      <p className="text-sm font-medium text-text-primary truncate">
-                        {userProfile?.displayName ?? 'User'}
-                      </p>
-                      <p className="text-xs text-text-secondary truncate">{currentUser.email}</p>
-                    </div>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:text-danger hover:bg-surface-2 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="hidden sm:block text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/signup"
-                  className="bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2 rounded-btn transition-colors"
-                >
-                  Create account
-                </Link>
-              </>
-            )}
-
             {/* Mobile menu button */}
             <button
               className="md:hidden p-2 rounded-btn text-text-secondary hover:text-text-primary hover:bg-surface-2"
@@ -153,43 +79,8 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            {!currentUser && (
-              <>
-                <Link
-                  to="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="block px-3 py-2 rounded-btn text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-2"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setMobileOpen(false)}
-                  className="block px-3 py-2 rounded-btn text-sm font-medium bg-primary text-white hover:bg-primary-dark"
-                >
-                  Create account
-                </Link>
-              </>
-            )}
-            {currentUser && (
-              <button
-                onClick={() => { handleSignOut(); setMobileOpen(false); }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-btn text-sm font-medium text-danger hover:bg-surface-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign out
-              </button>
-            )}
           </div>
         </div>
-      )}
-
-      {/* Close user menu on outside click */}
-      {userMenuOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setUserMenuOpen(false)}
-        />
       )}
     </header>
   );

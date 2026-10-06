@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Check, ChevronDown, CloudLightning, Compass, ExternalLink, Flame, Info, Layers, Loader2, LocateFixed, Map, MapPin, Mountain, Package, Radio, RefreshCw, Search, ShieldCheck, Snowflake, Sun, Waves, Wind, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { ArrowRight, Check, ChevronDown, CloudLightning, Compass, ExternalLink, Flame, Info, Layers, Loader2, LocateFixed, MapPin, Mountain, Package, Radio, RefreshCw, Search, ShieldCheck, Snowflake, Sun, Waves, Wind, X } from 'lucide-react';
 import { getRisksForState, MONTH_NAMES, SAFETY_TIPS } from '../lib/riskData';
-import { HAZARD_COLORS, HAZARD_TYPES, locateVisitor, readSavedLocation, searchLocations, STATES, stateLocation, type VisitorLocation } from '../lib/visitorData';
+import { clearSavedLocation, HAZARD_COLORS, HAZARD_TYPES, locateVisitor, readSavedLocation, saveVisitorState, searchLocations, STATES, stateLocation, type VisitorLocation } from '../lib/visitorData';
 import { useWeatherAlerts } from '../lib/useWeatherAlerts';
-import '../visitor.css';
+import AdSlot from '../components/AdSlot';
 
 const DisasterMap = lazy(() => import('../components/DisasterMap'));
 const severityOrder = { extreme: 0, high: 1, moderate: 2, low: 3 };
@@ -20,7 +20,7 @@ function HazardIcon({ type, size = 24 }: { type: string; size?: number }) {
 }
 
 export default function Landing() {
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const tab = params.get('tab') === 'map' ? 'map' : 'area';
   const [location, setLocation] = useState<VisitorLocation | null>(readSavedLocation);
   const [query, setQuery] = useState('');
@@ -45,7 +45,7 @@ export default function Landing() {
     setQuery('');
     setError('');
     setBusy(null);
-    try { localStorage.setItem('pfa-visitor-state', next.state); } catch { return; }
+    saveVisitorState(next.state);
   }
 
   async function findCity(event: FormEvent) {
@@ -109,7 +109,7 @@ export default function Landing() {
     setError('');
     setResults([]);
     setQuery('');
-    try { localStorage.removeItem('pfa-visitor-state'); } catch { return; }
+    clearSavedLocation();
   }
 
   return (
@@ -119,7 +119,7 @@ export default function Landing() {
           <div className="intro-copy">
             <p className="eyebrow"><Compass size={16} /> A LITTLE KNOWLEDGE. A LOT MORE READY.</p>
             <h1>Prepared For Anything<span>starts with where you are.</span></h1>
-            <p className="intro-description">Discover your area's hazards and what to do before they happen. Your first step to being prepared, no account needed.</p>
+            <p className="intro-description">Discover your area's hazards and what to do before they happen. Your first step to being prepared.</p>
             <div className="intro-tags"><span><ShieldCheck size={16} /> Free to explore</span><span><MapPin size={16} /> All 50 states + DC</span></div>
           </div>
           <div className="location-tool">
@@ -134,19 +134,14 @@ export default function Landing() {
             {results.length > 0 && <ul className="city-results" aria-label="City search results">{results.map((result, index) => <li key={`${result.latitude}-${result.longitude}-${index}`}><button onClick={() => selectLocation(result)}><MapPin size={16} />{result.label}<ArrowRight size={16} /></button></li>)}</ul>}
             <div className="state-select"><label htmlFor="visitor-state">Choose a state</label><select id="visitor-state" value={location?.state || ''} onChange={event => event.target.value && selectLocation(stateLocation(event.target.value))}><option value="" disabled>Select your state</option>{STATES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></div>
             {error && <p className="location-error" role="alert">{error}</p>}
-            <p className="privacy-note"><Info size={14} /> Location is optional. Coordinates go to a location lookup service; only your chosen state is saved on this device.</p>
+            <p className="privacy-note"><Info size={14} /> Location is optional. Coordinates go to a location lookup service; only your chosen state is saved in a first-party cookie on this device.</p>
           </div>
         </div>
       </section>
 
       <div className="visitor-container">
-        <div className="explorer-navigation">
-          <nav className="explorer-tabs" aria-label="Explore preparedness">
-            <button className={tab === 'area' ? 'active' : ''} aria-current={tab === 'area' ? 'page' : undefined} onClick={() => setParams({ tab: 'area' }, { preventScrollReset: true })}><Compass size={18} /> Your area</button>
-            <button className={tab === 'map' ? 'active' : ''} aria-current={tab === 'map' ? 'page' : undefined} onClick={() => setParams({ tab: 'map' }, { preventScrollReset: true })}><Map size={18} /> Disaster map</button>
-          </nav>
-          {location ? <div className="selected-location"><MapPin size={15} /><span>{location.label}</span><button onClick={clearLocation} title="Forget my location" aria-label="Forget my location"><X size={15} /></button></div> : <span className="explorer-note">A safer tomorrow starts here</span>}
-        </div>
+        <AdSlot placement="top" />
+        {location && <div className="explorer-location-status"><MapPin size={15} /><span>Showing guidance for {location.label}</span><button onClick={clearLocation} title="Forget my location" aria-label="Forget my location"><X size={15} /> Forget location</button></div>}
 
         {tab === 'area' ? (
           <section className="area-section" aria-label="Regional preparedness">
@@ -192,8 +187,8 @@ export default function Landing() {
           {alerts.checkedAt && <p className="alert-updated">Checked {alerts.checkedAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} · <a href="https://www.weather.gov/" target="_blank" rel="noreferrer">weather.gov <ExternalLink size={12} /></a></p>}
         </section>}
 
+        <AdSlot placement="content" />
         <section className="ready-band"><div className="ready-band-heading"><Package size={28} /><div><p className="eyebrow">SMALL STEPS, REAL PEACE OF MIND</p><h2>Start with the essentials.</h2></div></div><div className="essentials-grid"><div><span>01</span><h3>Water + food</h3><p>At least one gallon of water per person per day and several days of nonperishable food.</p></div><div><span>02</span><h3>Light + connection</h3><p>A flashlight, spare batteries, a power bank, and a battery-powered emergency radio.</p></div><div><span>03</span><h3>Health + documents</h3><p>Medications, first aid, copies of important documents, and supplies for children and pets.</p></div></div><a href="https://www.ready.gov/kit" target="_blank" rel="noreferrer" className="official-kit-link">See the Ready.gov emergency kit guide <ArrowRight size={16} /></a></section>
-        <section className="account-band"><div><ShieldCheck size={25} /><div><h2>Know your risks. Make your plan.</h2><p>An account is for your next step: personal checklists and household planning.</p></div></div><Link to="/signup" className="visitor-button">Create an account <ArrowRight size={17} /></Link></section>
         <p className="visitor-disclaimer">Educational guidance only. Always follow local emergency officials. In an immediate emergency, call 911. Location search: Open-Meteo / BigDataCloud. Weather alerts: NWS.</p>
       </div>
     </div>

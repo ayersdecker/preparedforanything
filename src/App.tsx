@@ -1,19 +1,13 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
-import { AuthProvider } from './contexts/AuthContext';
-import AuthGuard from './components/auth/AuthGuard';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import './visitor.css';
 
 const Landing = lazy(() => import('./pages/Landing'));
-const Login = lazy(() => import('./pages/Login'));
-const Signup = lazy(() => import('./pages/Signup'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const ProfileSetup = lazy(() => import('./pages/ProfileSetup'));
-const RiskAssessment = lazy(() => import('./pages/RiskAssessment'));
-const KitBuilder = lazy(() => import('./pages/KitBuilder'));
+const EmergencyKit = lazy(() => import('./pages/EmergencyKit'));
+const Resources = lazy(() => import('./pages/Resources'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function PageLoader() {
@@ -39,58 +33,14 @@ function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter basename="/preparedforanything">
-      <AuthProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: '#1E1E1E',
-              color: '#FFFFFF',
-              border: '1px solid #2D2D2D',
-            },
-            success: { iconTheme: { primary: '#10B981', secondary: '#fff' } },
-            error: { iconTheme: { primary: '#EF4444', secondary: '#fff' } },
-          }}
-        />
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Layout><Landing /></Layout>} />
-            <Route path="/login" element={<Layout><Login /></Layout>} />
-            <Route path="/signup" element={<Layout><Signup /></Layout>} />
-            <Route
-              path="/profile-setup"
-              element={
-                <AuthGuard>
-                  <Layout><ProfileSetup /></Layout>
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <AuthGuard>
-                  <Layout><Dashboard /></Layout>
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/risk-assessment"
-              element={
-                <AuthGuard>
-                  <Layout><RiskAssessment /></Layout>
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/kit-builder"
-              element={
-                <Layout><KitBuilder /></Layout>
-              }
-            />
-            <Route path="*" element={<Layout><NotFound /></Layout>} />
-          </Routes>
-        </Suspense>
-      </AuthProvider>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Layout><Landing /></Layout>} />
+          <Route path="/emergency-kit" element={<Layout><EmergencyKit /></Layout>} />
+          <Route path="/resources" element={<Layout><Resources /></Layout>} />
+          <Route path="*" element={<Layout><NotFound /></Layout>} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

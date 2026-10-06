@@ -20,6 +20,7 @@ test('visitor can select, change, remember, and forget a state without sign-in',
   await page.goto('./');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Prepared For Anything');
   await expect(page.getByRole('heading', { name: 'Every place has a different story.' })).toBeVisible();
+  await expect(page.locator('.explorer-tabs')).toHaveCount(0);
   await page.getByLabel('Choose a state').selectOption('CA');
   await expect(page.getByRole('heading', { name: 'California at a glance' })).toBeVisible();
   await expect(page.locator('.hazard-card')).toHaveCount(6);
@@ -35,15 +36,24 @@ test('visitor can select, change, remember, and forget a state without sign-in',
   await page.getByLabel('Choose a state').selectOption('FL');
   await expect(page.getByRole('heading', { name: 'Florida at a glance' })).toBeVisible();
   await expect(page.locator('.hazard-card')).toHaveCount(5);
+  await expect(page.getByRole('link', { name: 'Create account' })).toHaveCount(0);
+  await expect(page.getByLabel('Advertisement')).toHaveCount(2);
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Florida at a glance' })).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem('pfa-visitor-state'))).toBe('FL');
+  expect(await page.evaluate(() => document.cookie)).toContain('pfa-visitor-state=FL');
   await page.getByRole('button', { name: 'Forget my location' }).click();
   await expect(page.getByRole('heading', { name: 'Every place has a different story.' })).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem('pfa-visitor-state'))).toBeNull();
+  expect(await page.evaluate(() => document.cookie)).not.toContain('pfa-visitor-state=');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: test.info().outputPath('visitor-area-page.png'), fullPage: true });
   expect(errors).toEqual([]);
+});
+
+test('account, dashboard, and legacy app routes are removed', async ({ page }) => {
+  for (const route of ['login', 'signup', 'dashboard', 'profile-setup', 'risk-assessment', 'kit-builder']) {
+    await page.goto(`./${route}`);
+    await expect(page.getByRole('heading', { name: 'Page Not Found' })).toBeVisible();
+  }
 });
 
 test('city search is disambiguated and handles empty and failed responses', async ({ page }) => {
@@ -87,7 +97,7 @@ test('browser location resolves a US area without storing coordinates', async ({
   await page.goto('./');
   await page.getByRole('button', { name: 'Use my location' }).click();
   await expect(page.getByRole('heading', { name: 'Austin, TX at a glance' })).toBeVisible();
-  expect(await page.evaluate(() => ({ ...localStorage }))).toEqual({ 'pfa-visitor-state': 'TX' });
+  expect(await page.evaluate(() => document.cookie)).toContain('pfa-visitor-state=TX');
 });
 
 test('alert failure is not displayed as all-clear, and refresh recovers', async ({ page }) => {
@@ -99,6 +109,44 @@ test('alert failure is not displayed as all-clear, and refresh recovers', async 
   await page.route('https://api.weather.gov/alerts/active?*', route => route.fulfill({ json: { features: [] } }));
   await page.getByRole('button', { name: 'Refresh weather alerts' }).click();
   await expect(page.getByText('No active NWS alerts returned', { exact: false })).toBeVisible();
+});
+
+test('emergency kit adapts to state hazards and household size', async ({ page }) => {
+  await page.goto('./emergency-kit');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Build an emergency kit');
+  await page.getByLabel('State or area').selectOption('FL');
+  await expect(page.getByLabel('Emergency type')).toHaveValue('Hurricane');
+  await expect(page.getByText('Evacuation route and meeting-place plan')).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: '1 person' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: '4 people' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: '9 gallons' })).toBeVisible();
+  await page.getByRole('checkbox', { name: 'Mark Drinking water as ready' }).check();
+  await expect(page.getByText('1 of 14 items checked')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Print checklist' })).toBeVisible();
+  const supplyTextWidth = await page.locator('.kit-comparison-item > span').first().evaluate(element => element.getBoundingClientRect().width);
+  expect(supplyTextWidth).toBeGreaterThan(200);
+  expect(await page.evaluate(() => document.cookie)).toContain('pfa-visitor-state=FL');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('local resources filter by jurisdiction and keep locality out of cookies', async ({ page }) => {
+  await page.goto('./resources');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Local emergency resources');
+  await page.getByLabel('State or DC').selectOption('CA');
+  await page.getByLabel('City or county (optional)').fill('Oakland');
+  await page.getByLabel('Jurisdiction').selectOption('City/Local');
+  await expect(page.getByRole('heading', { name: 'Look up official alerts for Oakland' })).toBeVisible();
+  await page.getByLabel('Jurisdiction').selectOption('County/Regional');
+  await expect(page.getByRole('heading', { name: 'Find county services for Oakland' })).toBeVisible();
+  await page.getByLabel('Search resources').fill('211');
+  await expect(page.getByRole('heading', { name: 'Find local help through 211' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Find county services for Oakland' })).toHaveCount(0);
+  const cookie = await page.evaluate(() => document.cookie);
+  expect(cookie).toContain('pfa-visitor-state=CA');
+  expect(cookie).not.toContain('Oakland');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Forget saved state' }).click();
+  expect(await page.evaluate(() => document.cookie)).not.toContain('pfa-visitor-state=');
 });
 
 test('map renders regional markers, filters hazards, and displays official polygons', async ({ page }, testInfo) => {

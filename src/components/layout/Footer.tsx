@@ -13,7 +13,8 @@ export default function Footer() {
           <nav className="flex flex-wrap gap-4 text-sm text-text-secondary">
             <Link to="/?tab=area" className="hover:text-text-primary transition-colors">Explore Your Area</Link>
             <Link to="/?tab=map" className="hover:text-text-primary transition-colors">Disaster Map</Link>
-            <Link to="/signup" className="hover:text-text-primary transition-colors">Create account</Link>
+            <Link to="/emergency-kit" className="hover:text-text-primary transition-colors">Emergency Kit</Link>
+            <Link to="/resources" className="hover:text-text-primary transition-colors">Local Resources</Link>
           </nav>
         </div>
         <div className="mt-6 pt-6 border-t border-surface-2 space-y-2">
@@ -23,9 +24,9 @@ export default function Footer() {
             Always follow guidance from local authorities and emergency management officials during a disaster.
           </p>
           <p className="text-xs text-text-secondary">
-            <strong className="text-warning">Affiliate Disclosure:</strong> Some links on this platform may be affiliate links.
-            We may earn a commission if you purchase through these links at no additional cost to you. We only recommend
-            products we believe are useful for emergency preparedness.
+            <strong className="text-warning">Advertising and cookies:</strong> This site is supported by advertising.
+            Your selected state is saved in a first-party cookie on this device. Once ad placements are enabled,
+            Google may use cookies for advertising as described in its privacy policies.
           </p>
           <p className="text-xs text-text-secondary mt-4">
             © {new Date().getFullYear()} Prepared For Anything. All rights reserved.
